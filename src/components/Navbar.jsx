@@ -19,17 +19,17 @@ function Navbar({ value, onChange }) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box
-            component="img"
-            src="/myLogo1.png"
+          <img
+            src={`${process.env.PUBLIC_URL}/myLogo1.png`}
             alt="Noze Logo"
-            sx={{
-              height: 40,
-              mr: 2,
+            style={{
+              height: '40px',
+              marginRight: '16px',
             }}
+            onError={(e) => console.error('Logo failed to load:', e)} // Log error if logo fails to load
           />
           <Tabs
-            value={value < 2 ? value : 0} // Map value for Plot and Analyze tabs
+            value={value < 2 ? value : 0}
             onChange={(event, newValue) => onChange(event, newValue)}
             sx={{
               '& .MuiTab-root': {
@@ -58,7 +58,7 @@ function Navbar({ value, onChange }) {
         <Box>
           <Tab
             label="Documents"
-            onClick={() => onChange(null, 2)} // Set tabValue to 2 for Documents
+            onClick={() => onChange(null, 2)}
             sx={{
               color: value === 2 ? '#00DE93' : '#000',
               fontWeight: 'medium',
