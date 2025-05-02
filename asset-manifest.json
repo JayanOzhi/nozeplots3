@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/nozeplots3/static/css/main.6ecb31bf.css",
-    "main.js": "/nozeplots3/static/js/main.3b8ed529.js",
+    "main.js": "/nozeplots3/static/js/main.48784a6a.js",
     "static/js/453.dec95c69.chunk.js": "/nozeplots3/static/js/453.dec95c69.chunk.js",
     "static/media/KaTeX_AMS-Regular.ttf": "/nozeplots3/static/media/KaTeX_AMS-Regular.853be92419a6c3766b9a.ttf",
     "static/media/KaTeX_Main-Regular.ttf": "/nozeplots3/static/media/KaTeX_Main-Regular.9eba1d77abcf2aa6e94e.ttf",
@@ -65,11 +65,11 @@
     "static/media/KaTeX_Size3-Regular.woff2": "/nozeplots3/static/media/KaTeX_Size3-Regular.e1951519f6f0596f7356.woff2",
     "index.html": "/nozeplots3/index.html",
     "main.6ecb31bf.css.map": "/nozeplots3/static/css/main.6ecb31bf.css.map",
-    "main.3b8ed529.js.map": "/nozeplots3/static/js/main.3b8ed529.js.map",
+    "main.48784a6a.js.map": "/nozeplots3/static/js/main.48784a6a.js.map",
     "453.dec95c69.chunk.js.map": "/nozeplots3/static/js/453.dec95c69.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.6ecb31bf.css",
-    "static/js/main.3b8ed529.js"
+    "static/js/main.48784a6a.js"
   ]
 }
