@@ -3,7 +3,7 @@ import Plot from 'react-plotly.js';
 import { Box } from '@mui/material';
 import { mean, movingAverage, savitzkyGolay, medianFilter } from '../utils/utils';
 
-function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder }) {
+function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder, baselineStart, baselineEnd }) {
   const { key, fileGroups } = plotData;
   const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f'];
   let colorIndex = 0;
@@ -20,11 +20,15 @@ function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, pol
       continue;
     }
 
-    // Use count (1, 2, 3, ...) for x-axis
-    let times = Array.from({ length: trials[0].time.length }, (_, i) => i + 1);
-    let filteredValueArrays = valueArrays;
+    // Ensure all values in valueArrays are numbers
+    const cleanedValueArrays = valueArrays.map(arr =>
+      arr.map(val => (typeof val === 'number' && !isNaN(val) ? val : 0))
+    );
 
-    // Filter data based on time range
+    let times = Array.from({ length: trials[0].time.length }, (_, i) => i + 1);
+    let filteredValueArrays = cleanedValueArrays;
+
+    // Apply time range filter
     if (timeStart !== null && timeEnd !== null && timeStart <= timeEnd) {
       const indicesInRange = times
         .map((t, i) => ({ time: t, index: i }))
@@ -36,72 +40,88 @@ function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, pol
         continue;
       }
 
-      times = times.filter(t => t >= timeStart && t <= timeEnd);
-      filteredValueArrays = valueArrays.map(arr =>
+      times = indicesInRange.map(i => times[i]);
+      filteredValueArrays = cleanedValueArrays.map(arr =>
         indicesInRange.map(i => arr[i])
       );
     }
 
-    // Calculate unfiltered mean
     let avgUnfiltered = mean(filteredValueArrays);
+    let avgFiltered = [...avgUnfiltered];
 
-    // Calculate filtered mean
-    let avgFiltered = [...avgUnfiltered]; // Start with the unfiltered mean
-    if (noiseFilter === 'movingAverage') {
-      avgFiltered = movingAverage(avgFiltered, windowSize);
-    } else if (noiseFilter === 'savitzkyGolay') {
-      avgFiltered = savitzkyGolay(avgFiltered, windowSize, polynomialOrder);
-    } else if (noiseFilter === 'medianFilter') {
-      avgFiltered = medianFilter(avgFiltered, windowSize);
+    // Normalize if baseline region is specified
+    let normalizedUnfiltered = [...avgUnfiltered];
+    let normalizedFiltered = [...avgFiltered];
+
+    if (baselineStart !== null && baselineEnd !== null && baselineStart <= baselineEnd) {
+      const baselineIndices = times
+        .map((t, i) => ({ time: t, index: i }))
+        .filter(t => t.time >= baselineStart && t.time <= baselineEnd)
+        .map(t => t.index);
+
+      if (baselineIndices.length > 0) {
+        const baselineValues = avgUnfiltered.filter((_, i) => baselineIndices.includes(i));
+        const yAvg = baselineValues.reduce((sum, val) => sum + val, 0) / baselineValues.length;
+
+        if (yAvg !== 0) {
+          normalizedUnfiltered = avgUnfiltered.map(y => 100 * (y - yAvg) / yAvg);
+          normalizedFiltered = avgFiltered.map(y => 100 * (y - yAvg) / yAvg);
+        } else {
+          console.log(`Baseline average is zero for ${key} in ${concentration}, skipping normalization`);
+        }
+      } else {
+        console.log(`No data in baseline range ${baselineStart}-${baselineEnd} for ${key} in ${concentration}`);
+      }
     }
 
-    console.log(`After filtering - ${key} in ${concentration}: times.length=${times.length}, avgUnfiltered.length=${avgUnfiltered.length}, avgFiltered.length=${avgFiltered.length}, filteredValueArrays.length=${filteredValueArrays[0]?.length}`);
-    console.log(`Sample unfiltered data - ${key} in ${concentration}: ${avgUnfiltered.slice(0, 5)}`);
-    console.log(`Sample filtered data - ${key} in ${concentration}: ${avgFiltered.slice(0, 5)}`);
+    // Apply noise filter to normalized data
+    if (noiseFilter !== 'none') {
+      if (noiseFilter === 'movingAverage') {
+        normalizedFiltered = movingAverage(normalizedFiltered, windowSize);
+      } else if (noiseFilter === 'savitzkyGolay') {
+        normalizedFiltered = savitzkyGolay(normalizedFiltered, windowSize, polynomialOrder);
+      } else if (noiseFilter === 'medianFilter') {
+        normalizedFiltered = medianFilter(normalizedFiltered, windowSize);
+      }
+    }
 
-    // Update y-axis range based on unfiltered and filtered data
-    yMin = Math.min(yMin, ...avgUnfiltered, ...(noiseFilter !== 'none' ? avgFiltered : []));
-    yMax = Math.max(yMax, ...avgUnfiltered, ...(noiseFilter !== 'none' ? avgFiltered : []));
+    yMin = Math.min(yMin, ...normalizedUnfiltered, ...(noiseFilter !== 'none' ? normalizedFiltered : []));
+    yMax = Math.max(yMax, ...normalizedUnfiltered, ...(noiseFilter !== 'none' ? normalizedFiltered : []));
 
     const traceColor = colors[colorIndex % colors.length];
 
-    // Add unfiltered signal (blue, default color, slightly transparent if filtered) first
     traces.push({
       x: times,
-      y: avgUnfiltered,
+      y: normalizedUnfiltered,
       type: 'scatter',
       mode: 'lines',
       name: `${concentration} Raw`,
       line: { width: 2, color: traceColor },
-      opacity: noiseFilter !== 'none' ? 0.3 : 1, // 30% opacity if filtered, full opacity otherwise
+      opacity: noiseFilter !== 'none' ? 0.3 : 1,
     });
 
-    // Add filtered signal (red) last, so it renders on top
     if (noiseFilter !== 'none') {
       traces.push({
         x: times,
-        y: avgFiltered,
+        y: normalizedFiltered,
         type: 'scatter',
         mode: 'lines',
         name: `${concentration} Filtered`,
-        line: { width: 3, color: '#ff0000' }, // Slightly thicker line for visibility
-        opacity: 1, // Full opacity for filtered signal
+        line: { width: 3, color: '#ff0000' },
+        opacity: 1,
       });
     }
 
     colorIndex++;
   }
 
-  // Set axis ranges with padding
   const xMax = traces.length > 0 ? Math.max(...traces[0].x) : 1;
-  const yPadding = (yMax - yMin) * 0.1 || 0.1; // 10% padding, avoid zero
+  const yPadding = (yMax - yMin) * 0.1 || 0.1;
   const xRange = [timeStart !== null ? timeStart : 0, timeEnd !== null ? timeEnd : xMax + 1];
   const yRange = [yMin - yPadding, yMax + yPadding];
 
-  console.log(`Plot ${key}: xRange=${xRange}, yRange=${yRange}`);
-
   return (
-    <Box sx={{ width: 400, height: 300 }}>
+    <Box sx={{ width: 360, height: 300 }}>
       <Plot
         data={traces}
         layout={{
@@ -125,7 +145,7 @@ function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, pol
             mirror: true,
           },
           yaxis: {
-            title: key,
+            title: baselineStart !== null && baselineEnd !== null ? '% Change from Baseline' : key,
             titlefont: { size: 14, family: 'Arial', color: '#333' },
             range: yRange,
             showgrid: true,
@@ -137,9 +157,9 @@ function SensorPlot({ plotData, timeStart, timeEnd, noiseFilter, windowSize, pol
             showline: true,
             mirror: true,
           },
-          width: 400,
-          height: 300,
-          margin: { t: 60, l: 50, r: 50, b: 60 }, // Balanced left and right margins
+          width: 500,
+          height: 350,
+          margin: { t: 60, l: 50, r: 50, b: 60 },
           plot_bgcolor: '#ffffff',
           paper_bgcolor: '#f5f5f5',
           showlegend: true,

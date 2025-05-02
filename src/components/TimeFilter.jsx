@@ -39,12 +39,16 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
   const [filterType, setFilterType] = useState('none');
   const [windowSize, setWindowSize] = useState(initialWindowSize);
   const [polynomialOrder, setPolynomialOrder] = useState(initialPolynomialOrder);
+  const [baselineStart, setBaselineStart] = useState('');
+  const [baselineEnd, setBaselineEnd] = useState('');
 
   const handleFilterClick = () => {
     const startNum = parseInt(start, 10);
     const endNum = parseInt(end, 10);
     const winSizeNum = parseInt(windowSize, 10);
     const polyOrderNum = parseInt(polynomialOrder, 10);
+    const baselineStartNum = parseInt(baselineStart, 10);
+    const baselineEndNum = parseInt(baselineEnd, 10);
 
     if (start === '' || end === '') {
       alert('Please specify both start and end time counts for the analysis.');
@@ -73,12 +77,21 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       }
     }
 
+    if (baselineStart !== '' && baselineEnd !== '') {
+      if (isNaN(baselineStartNum) || isNaN(baselineEndNum) || baselineStartNum < 0 || baselineEndNum < baselineStartNum) {
+        alert('Please enter valid baseline start and end time counts (start >= 0, end >= start).');
+        return;
+      }
+    }
+
     onFilter(
       startNum,
       endNum,
       filterType,
       winSizeNum,
-      polyOrderNum
+      polyOrderNum,
+      baselineStart !== '' ? baselineStartNum : null,
+      baselineEnd !== '' ? baselineEndNum : null
     );
   };
 
@@ -88,8 +101,12 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
     setFilterType('none');
     setWindowSize(initialWindowSize);
     setPolynomialOrder(initialPolynomialOrder);
+    setBaselineStart('');
+    setBaselineEnd('');
     onReset();
   };
+
+  console.log('Rendering TimeFilter'); // Debug rendering
 
   return (
     <Box
@@ -102,8 +119,8 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
         padding: 2,
         borderRadius: '8px',
         boxShadow: 2,
-        justifyContent: 'center', // Center the filter UI elements
-        width: 'auto', // Allow natural width based on content
+        justifyContent: 'center',
+        width: 'auto',
       }}
     >
       <TextField
@@ -130,6 +147,44 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
         type="number"
         value={end}
         onChange={(e) => setEnd(e.target.value)}
+        size="small"
+        sx={{
+          width: 150,
+          '& .MuiInputBase-root': {
+            backgroundColor: '#fff',
+            borderRadius: '4px',
+          },
+          '& .MuiInputLabel-root': {
+            fontWeight: 500,
+            color: '#555',
+          },
+        }}
+        InputProps={{ inputProps: { min: 0 } }}
+      />
+      <TextField
+        label="Baseline Start"
+        type="number"
+        value={baselineStart}
+        onChange={(e) => setBaselineStart(e.target.value)}
+        size="small"
+        sx={{
+          width: 150,
+          '& .MuiInputBase-root': {
+            backgroundColor: '#fff',
+            borderRadius: '4px',
+          },
+          '& .MuiInputLabel-root': {
+            fontWeight: 500,
+            color: '#555',
+          },
+        }}
+        InputProps={{ inputProps: { min: 0 } }}
+      />
+      <TextField
+        label="Baseline End"
+        type="number"
+        value={baselineEnd}
+        onChange={(e) => setBaselineEnd(e.target.value)}
         size="small"
         sx={{
           width: 150,

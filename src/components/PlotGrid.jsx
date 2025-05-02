@@ -1,45 +1,50 @@
 import React from 'react';
 import { Grid } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import SensorPlot from './SensorPlot';
-import { styled } from '@mui/material';
 
-// Custom styled Grid item for 3 columns
+// Styled Grid item for consistent 3-column layout
 const GridItem = styled(Grid)(({ theme }) => ({
   flexBasis: '33.333%',
   maxWidth: '33.333%',
-  padding: theme.spacing(1),
-  boxSizing: 'border-box',
+  padding: theme.spacing(0.5), // Reduced spacing between items
   display: 'flex',
   justifyContent: 'center',
+  boxSizing: 'border-box',
+
+  [theme.breakpoints.down('md')]: {
+    flexBasis: '50%',
+    maxWidth: '50%',
+  },
   [theme.breakpoints.down('sm')]: {
     flexBasis: '100%',
     maxWidth: '100%',
   },
 }));
 
-function PlotGrid({ plots, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder }) {
+function PlotGrid({ plots, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder, baselineStart, baselineEnd }) {
   return (
     <Grid
       container
-      spacing={2}
+      spacing={0.5} // Lower spacing between grid rows/columns
       sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         width: '100%',
-        margin: '0 auto',
+        margin: 0,
       }}
     >
-      {plots.map((plot, index) => (
-        <GridItem key={plot.key}>
+      {plots.map((plot) => (
+        <GridItem item key={plot.key}>
           <SensorPlot
             plotData={plot}
             timeStart={timeStart}
             timeEnd={timeEnd}
-            noiseFilter={noiseFilter || 'none'}
-            windowSize={windowSize || 5}
-            polynomialOrder={polynomialOrder || 2}
+            noiseFilter={noiseFilter}
+            windowSize={windowSize}
+            polynomialOrder={polynomialOrder}
+            baselineStart={baselineStart}
+            baselineEnd={baselineEnd}
           />
         </GridItem>
       ))}
