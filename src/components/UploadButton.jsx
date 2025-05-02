@@ -26,6 +26,7 @@ function UploadButton({ onFileUpload }) {
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
+    const fileNames = files.map(file => file.name); // Extract file names
     const fileGroups = {};
 
     // Parse files and group by concentration
@@ -100,7 +101,7 @@ function UploadButton({ onFileUpload }) {
     }));
 
     console.log(`Generated ${plotPanels.length} plot panels for ${Math.ceil(sortedKeys.length / 3)} rows`);
-    onFileUpload(plotPanels);
+    onFileUpload(plotPanels, fileNames); // Pass both plot data and file names
   };
 
   const handleButtonClick = () => {

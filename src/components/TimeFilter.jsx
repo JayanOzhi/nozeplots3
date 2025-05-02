@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, TextField, Button, MenuItem, Select, FormControl, InputLabel, styled } from '@mui/material';
 
 const FilterButton = styled(Button)(({ theme }) => ({
@@ -33,24 +33,51 @@ const ResetButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrder }) {
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
-  const [filterType, setFilterType] = useState('none');
-  const [windowSize, setWindowSize] = useState(initialWindowSize);
-  const [polynomialOrder, setPolynomialOrder] = useState(initialPolynomialOrder);
-  const [baselineStart, setBaselineStart] = useState('');
-  const [baselineEnd, setBaselineEnd] = useState('');
+const ToggleRawButton = styled(Button)(({ theme }) => ({
+  backgroundColor: '#ff9800',
+  color: '#ffffff',
+  padding: theme.spacing(1, 2),
+  borderRadius: '8px',
+  textTransform: 'none',
+  fontWeight: 500,
+  boxShadow: theme.shadows[2],
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: '#f57c00',
+    boxShadow: theme.shadows[4],
+    transform: 'translateY(-1px)',
+  },
+}));
 
+function TimeFilter({ 
+  onFilter, 
+  onReset, 
+  onToggleRaw, 
+  showRaw, 
+  startInput, 
+  setStartInput, 
+  endInput, 
+  setEndInput, 
+  filterTypeInput, 
+  setFilterTypeInput, 
+  windowSizeInput, 
+  setWindowSizeInput, 
+  polynomialOrderInput, 
+  setPolynomialOrderInput, 
+  baselineStartInput, 
+  setBaselineStartInput, 
+  baselineEndInput, 
+  setBaselineEndInput 
+}) {
   const handleFilterClick = () => {
-    const startNum = parseInt(start, 10);
-    const endNum = parseInt(end, 10);
-    const winSizeNum = parseInt(windowSize, 10);
-    const polyOrderNum = parseInt(polynomialOrder, 10);
-    const baselineStartNum = parseInt(baselineStart, 10);
-    const baselineEndNum = parseInt(baselineEnd, 10);
+    const startNum = parseInt(startInput, 10);
+    const endNum = parseInt(endInput, 10);
+    const winSizeNum = parseInt(windowSizeInput, 10);
+    const polyOrderNum = parseInt(polynomialOrderInput, 10);
+    const baselineStartNum = parseInt(baselineStartInput, 10);
+    const baselineEndNum = parseInt(baselineEndInput, 10);
 
-    if (start === '' || end === '') {
+    if (startInput === '' || endInput === '') {
       alert('Please specify both start and end time counts for the analysis.');
       return;
     }
@@ -60,12 +87,12 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       return;
     }
 
-    if (filterType !== 'none') {
+    if (filterTypeInput !== 'none') {
       if (isNaN(winSizeNum) || winSizeNum < 3) {
         alert('Window size must be a number >= 3.');
         return;
       }
-      if (filterType === 'savitzkyGolay') {
+      if (filterTypeInput === 'savitzkyGolay') {
         if (winSizeNum % 2 === 0) {
           alert('Window size must be odd for Savitzky-Golay filter.');
           return;
@@ -77,7 +104,7 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       }
     }
 
-    if (baselineStart !== '' && baselineEnd !== '') {
+    if (baselineStartInput !== '' && baselineEndInput !== '') {
       if (isNaN(baselineStartNum) || isNaN(baselineEndNum) || baselineStartNum < 0 || baselineEndNum < baselineStartNum) {
         alert('Please enter valid baseline start and end time counts (start >= 0, end >= start).');
         return;
@@ -87,26 +114,19 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
     onFilter(
       startNum,
       endNum,
-      filterType,
+      filterTypeInput,
       winSizeNum,
       polyOrderNum,
-      baselineStart !== '' ? baselineStartNum : null,
-      baselineEnd !== '' ? baselineEndNum : null
+      baselineStartInput !== '' ? baselineStartNum : null,
+      baselineEndInput !== '' ? baselineEndNum : null
     );
   };
 
-  const handleResetClick = () => {
-    setStart('');
-    setEnd('');
-    setFilterType('none');
-    setWindowSize(initialWindowSize);
-    setPolynomialOrder(initialPolynomialOrder);
-    setBaselineStart('');
-    setBaselineEnd('');
-    onReset();
+  const handleToggleRaw = () => {
+    onToggleRaw();
   };
 
-  console.log('Rendering TimeFilter'); // Debug rendering
+  console.log('Rendering TimeFilter');
 
   return (
     <Box
@@ -126,8 +146,8 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       <TextField
         label="Start Time Count"
         type="number"
-        value={start}
-        onChange={(e) => setStart(e.target.value)}
+        value={startInput}
+        onChange={(e) => setStartInput(e.target.value)}
         size="small"
         sx={{
           width: 150,
@@ -145,8 +165,8 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       <TextField
         label="End Time Count"
         type="number"
-        value={end}
-        onChange={(e) => setEnd(e.target.value)}
+        value={endInput}
+        onChange={(e) => setEndInput(e.target.value)}
         size="small"
         sx={{
           width: 150,
@@ -164,8 +184,8 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       <TextField
         label="Baseline Start"
         type="number"
-        value={baselineStart}
-        onChange={(e) => setBaselineStart(e.target.value)}
+        value={baselineStartInput}
+        onChange={(e) => setBaselineStartInput(e.target.value)}
         size="small"
         sx={{
           width: 150,
@@ -183,8 +203,8 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       <TextField
         label="Baseline End"
         type="number"
-        value={baselineEnd}
-        onChange={(e) => setBaselineEnd(e.target.value)}
+        value={baselineEndInput}
+        onChange={(e) => setBaselineEndInput(e.target.value)}
         size="small"
         sx={{
           width: 150,
@@ -215,9 +235,9 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
       >
         <InputLabel>Noise Filter</InputLabel>
         <Select
-          value={filterType}
+          value={filterTypeInput}
           label="Noise Filter"
-          onChange={(e) => setFilterType(e.target.value)}
+          onChange={(e) => setFilterTypeInput(e.target.value)}
         >
           <MenuItem value="none">None</MenuItem>
           <MenuItem value="movingAverage">Moving Average</MenuItem>
@@ -225,12 +245,12 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
           <MenuItem value="medianFilter">Median Filter</MenuItem>
         </Select>
       </FormControl>
-      {filterType !== 'none' && (
+      {filterTypeInput !== 'none' && (
         <TextField
           label="Window Size"
           type="number"
-          value={windowSize}
-          onChange={(e) => setWindowSize(e.target.value)}
+          value={windowSizeInput}
+          onChange={(e) => setWindowSizeInput(e.target.value)}
           size="small"
           sx={{
             width: 120,
@@ -246,12 +266,12 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
           InputProps={{ inputProps: { min: 3 } }}
         />
       )}
-      {filterType === 'savitzkyGolay' && (
+      {filterTypeInput === 'savitzkyGolay' && (
         <TextField
           label="Polynomial Order"
           type="number"
-          value={polynomialOrder}
-          onChange={(e) => setPolynomialOrder(e.target.value)}
+          value={polynomialOrderInput}
+          onChange={(e) => setPolynomialOrderInput(e.target.value)}
           size="small"
           sx={{
             width: 150,
@@ -264,15 +284,18 @@ function TimeFilter({ onFilter, onReset, initialWindowSize, initialPolynomialOrd
               color: '#555',
             },
           }}
-          InputProps={{ inputProps: { min: 1, max: windowSize - 1 } }}
+          InputProps={{ inputProps: { min: 1, max: windowSizeInput - 1 } }}
         />
       )}
       <FilterButton onClick={handleFilterClick}>
         Apply Filters
       </FilterButton>
-      <ResetButton onClick={handleResetClick}>
+      <ResetButton onClick={onReset}>
         Reset
       </ResetButton>
+      <ToggleRawButton onClick={onToggleRaw}>
+        {showRaw ? 'Hide Raw Plots' : 'Show Raw Plots'}
+      </ToggleRawButton>
     </Box>
   );
 }

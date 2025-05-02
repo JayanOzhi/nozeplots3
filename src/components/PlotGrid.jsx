@@ -7,7 +7,7 @@ import SensorPlot from './SensorPlot';
 const GridItem = styled(Grid)(({ theme }) => ({
   flexBasis: '33.333%',
   maxWidth: '33.333%',
-  padding: theme.spacing(0.5), // Reduced spacing between items
+  padding: theme.spacing(0.5),
   display: 'flex',
   justifyContent: 'center',
   boxSizing: 'border-box',
@@ -22,11 +22,11 @@ const GridItem = styled(Grid)(({ theme }) => ({
   },
 }));
 
-function PlotGrid({ plots, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder, baselineStart, baselineEnd }) {
+function PlotGrid({ plots, timeStart, timeEnd, noiseFilter, windowSize, polynomialOrder, baselineStart, baselineEnd, showRaw }) {
   return (
     <Grid
       container
-      spacing={0.5} // Lower spacing between grid rows/columns
+      spacing={0.5}
       sx={{
         justifyContent: 'center',
         alignItems: 'flex-start',
@@ -45,6 +45,7 @@ function PlotGrid({ plots, timeStart, timeEnd, noiseFilter, windowSize, polynomi
             polynomialOrder={polynomialOrder}
             baselineStart={baselineStart}
             baselineEnd={baselineEnd}
+            showRaw={showRaw}
           />
         </GridItem>
       ))}

@@ -29,8 +29,8 @@ function Navbar({ value, onChange }) {
             }}
           />
           <Tabs
-            value={value}
-            onChange={onChange}
+            value={value < 2 ? value : 0} // Map value for Plot and Analyze tabs
+            onChange={(event, newValue) => onChange(event, newValue)}
             sx={{
               '& .MuiTab-root': {
                 color: '#000',
@@ -52,9 +52,24 @@ function Navbar({ value, onChange }) {
             }}
           >
             <Tab label="Plot" />
-            <Tab label="Analyze" />
-            <Tab label="Documents" /> {/* Added Documents tab */}
+            <Tab label="Processing" />
           </Tabs>
+        </Box>
+        <Box>
+          <Tab
+            label="Documents"
+            onClick={() => onChange(null, 2)} // Set tabValue to 2 for Documents
+            sx={{
+              color: value === 2 ? '#00DE93' : '#000',
+              fontWeight: 'medium',
+              textTransform: 'none',
+              fontSize: '1rem',
+              padding: '6px 12px',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              },
+            }}
+          />
         </Box>
       </Toolbar>
     </AppBar>
